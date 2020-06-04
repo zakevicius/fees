@@ -1,36 +1,28 @@
 import {
 	checkIfFileExists,
 	getInputData,
-	getCashInConfig,
-	getCashOutNaturalConfig,
-	getCashOutLegalConfig,
+	getConfigs,
 	getFee
 } from './functions.js';
 
 const INPUT_FILE = process.argv[2];
-let INPUT_DATA;
 
 if (!checkIfFileExists(INPUT_FILE)) {
-	process.stdout.write(`${INPUT_FILE} was not found`);
+	console.log(`${INPUT_FILE} was not found`);
 	process.exit();
 }
 
-Promise.all([
-	getInputData(INPUT_FILE),
-	getCashInConfig(),
-	getCashOutNaturalConfig(),
-	getCashOutLegalConfig()
-]).then((values) => {
+Promise.all([getInputData(INPUT_FILE), getConfigs()]).then((values) => {
 	values.forEach((val) => {
 		if (typeof val === 'string') {
-			process.stdout.write(`${val} was not found or is incorrect`);
+			console.log(`${val} was not found or is incorrect`);
 			process.exit();
 		}
 	});
 
-	INPUT_DATA = values[0];
+	const { configs } = values.filter((val) => val.configs !== undefined)[0];
 
-	INPUT_DATA.forEach((data) => {
-		process.stdout.write(getFee(data) + '\n');
+	values[0].forEach((data) => {
+		console.log(getFee(data, configs));
 	});
 });

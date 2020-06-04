@@ -1,56 +1,38 @@
 import {
-	getCashInConfig,
-	getCashOutNaturalConfig,
-	getCashOutLegalConfig,
 	checkIfFileExists,
 	getInputData,
 	isValidDate,
-	getFee
+	getFee,
+	calculate
 } from './functions';
+
+import configs from './configs.json';
 
 describe('Checking configs', () => {
 	describe('Checking CASH_IN_CONFIG', () => {
-		test('Check if CASH_IN_CONFIG exists', async () => {
-			expect.assertions(1);
-			expect(await getCashInConfig()).toBeTruthy();
-		});
-
-		test('Check if CASH_IN_CONFIG contains required properties', async () => {
-			expect.assertions(3);
-			const CASH_IN_CONFIG = await getCashInConfig();
-			expect(CASH_IN_CONFIG).toHaveProperty('percents');
-			expect(CASH_IN_CONFIG).toHaveProperty('max.amount');
-			expect(CASH_IN_CONFIG).toHaveProperty('max.currency');
+		test('Check if CASH_IN_CONFIG contains required properties', () => {
+			const config = configs.cashIn;
+			expect(config).toHaveProperty('percents');
+			expect(config).toHaveProperty('max.amount');
+			expect(config).toHaveProperty('max.currency');
 		});
 	});
 
 	describe('Checking CASH_OUT_NATURAL_CONFIG', () => {
-		test('Check if CASH_OUT_NATURAL_CONFIG exists', async () => {
-			expect.assertions(1);
-			expect(await getCashOutNaturalConfig()).toBeTruthy();
-		});
-
 		test('Check if CASH_OUT_NATURAL_CONFIG contains required properties', async () => {
-			expect.assertions(3);
-			const CASH_OUT_NATURAL_CONFIG = await getCashOutNaturalConfig();
-			expect(CASH_OUT_NATURAL_CONFIG).toHaveProperty('percents');
-			expect(CASH_OUT_NATURAL_CONFIG).toHaveProperty('week_limit.amount');
-			expect(CASH_OUT_NATURAL_CONFIG).toHaveProperty('week_limit.currency');
+			const config = configs.cashOut.natural;
+			expect(config).toHaveProperty('percents');
+			expect(config).toHaveProperty('week_limit.amount');
+			expect(config).toHaveProperty('week_limit.currency');
 		});
 	});
 
 	describe('Checking CASH_OUT_LEGAL_CONFIG', () => {
-		test('Check if CASH_OUT_LEGAL_CONFIG exists', async () => {
-			expect.assertions(1);
-			expect(await getCashOutLegalConfig()).toBeTruthy();
-		});
-
 		test('Check if CASH_OUT_LEGAL_CONFIG contains required properties', async () => {
-			expect.assertions(3);
-			const CASH_OUT_LEGAL_CONFIG = await getCashOutLegalConfig();
-			expect(CASH_OUT_LEGAL_CONFIG).toHaveProperty('percents');
-			expect(CASH_OUT_LEGAL_CONFIG).toHaveProperty('min.amount');
-			expect(CASH_OUT_LEGAL_CONFIG).toHaveProperty('min.currency');
+			const config = configs.cashOut.juridical;
+			expect(config).toHaveProperty('percents');
+			expect(config).toHaveProperty('min.amount');
+			expect(config).toHaveProperty('min.currency');
 		});
 	});
 });
@@ -82,6 +64,21 @@ describe('Checking INPUT_DATA', () => {
 
 describe('Checking functions', () => {
 	test('Check if fee counting is correct', () => {
+		expect(calculate(1000, 100)).toBe('1000.00');
+		expect(calculate(1000, 0.1)).toBe('1.00');
+		expect(calculate(1, 1)).toBe('0.01');
+		expect(calculate(1000, 0)).toBe('0.00');
+		expect(calculate(1000, 5, 'min', 75)).toBe('50.00');
+		expect(calculate(5, 50, 'min', 2)).toBe('2.00');
+		expect(calculate(1, 100, 'min', 1)).toBe('1.00');
+		expect(calculate(1000, 50, 'max', 600)).toBe('600.00');
+		expect(calculate(1000, 0, 'max', 600)).toBe('600.00');
+		expect(calculate(1000, 10, 'max', 75)).toBe('100.00');
+		expect(calculate(1000, 10, 'mistype', 75)).toBe('100.00');
+		expect(calculate(1000, 10, 'mistype', 150)).toBe('100.00');
+	});
+
+	test('Check if general fee counting is correct', () => {
 		const data = [
 			{
 				date: '2020-02-20',
@@ -145,7 +142,7 @@ describe('Checking functions', () => {
 			}
 		];
 		data.forEach((el) => {
-			expect(getFee(el)).toBe(el.expect);
+			expect(getFee(el, configs)).toBe(el.expect);
 		});
 	});
 });

@@ -1,10 +1,10 @@
 export default class User {
-	constructor(id, type, date) {
+	constructor(id, type, date, max) {
 		this.id = id;
 		this.type = type;
 		this.usedLimit = 0;
 		this.lastCashoutDate = new Date(date);
-		this.MAX_LIMIT = 1000;
+		this.MAX_LIMIT = max;
 	}
 
 	get lastDate() {
